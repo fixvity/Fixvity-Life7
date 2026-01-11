@@ -21,11 +21,7 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-.container{
-  max-width:960px;
-  margin:auto;
-  padding:16px;
-}
+.container{max-width:960px;margin:auto;padding:16px}
 .card{
   background:var(--card);
   border-radius:var(--radius);
@@ -41,11 +37,7 @@ small{color:var(--muted)}
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:14px;
 }
-label{
-  font-size:14px;
-  display:block;
-  margin-bottom:6px;
-}
+label{font-size:14px;margin-bottom:6px;display:block}
 
 input, select{
   width:100%;
@@ -85,63 +77,51 @@ button{
   color:#3730a3;
 }
 
-.table-box{
-  margin-top:14px;
-  overflow-x:auto;
-}
+.table-box{margin-top:14px;overflow-x:auto}
 table{
   width:100%;
   border-collapse:collapse;
   font-size:14px;
 }
-th, td{
+th,td{
   padding:10px;
-  text-align:left;
   border-bottom:1px solid #e5e7eb;
 }
-th{
-  background:#eef2ff;
-  color:#1e3a8a;
-}
+th{background:#eef2ff;color:#1e3a8a}
 
-.warning{
-  color:#b91c1c;
-  font-weight:600;
-  margin-top:10px;
-}
+.warning{color:#b91c1c;font-weight:600}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- HEADER -->
 <div class="card">
 <h1>🌬️ Wind Chill Calculator</h1>
-<small>NOAA standard · Scientifically accurate · Mobile & Desktop optimized</small>
+<small>NOAA / NWS official standard · Scientifically accurate</small>
 </div>
 
-<!-- INPUT -->
 <div class="card">
 <h3>Weather Conditions</h3>
 
 <div class="grid">
 <div>
 <label>Air Temperature</label>
-<input type="number" id="temp" placeholder="e.g. -5">
+<input type="number" id="tempInput" placeholder="e.g. -5">
 </div>
 
 <div>
 <label>Temperature Unit</label>
 <select id="tempUnit">
-<option value="C">°C (Celsius)</option>
-<option value="F">°F (Fahrenheit)</option>
+<option value="C">Celsius (°C)</option>
+<option value="F">Fahrenheit (°F)</option>
+<option value="K">Kelvin (K)</option>
 </select>
 </div>
 
 <div>
 <label>Wind Speed</label>
-<input type="number" id="wind" placeholder="e.g. 20">
+<input type="number" id="windInput" placeholder="e.g. 20">
 </div>
 
 <div>
@@ -149,6 +129,8 @@ th{
 <select id="windUnit">
 <option value="kmh">km/h</option>
 <option value="mph">mph</option>
+<option value="ms">m/s</option>
+<option value="knots">knots</option>
 </select>
 </div>
 </div>
@@ -162,86 +144,73 @@ th{
 
 <script>
 function calculateWindChill(){
-  const output = document.getElementById("output");
+  const out = document.getElementById("output");
 
-  let T = parseFloat(document.getElementById("temp").value);
-  let V = parseFloat(document.getElementById("wind").value);
+  const tempVal = parseFloat(document.getElementById("tempInput").value);
+  const windVal = parseFloat(document.getElementById("windInput").value);
   const tUnit = document.getElementById("tempUnit").value;
   const vUnit = document.getElementById("windUnit").value;
 
-  if (isNaN(T) || isNaN(V)) {
-    output.innerHTML = "Please enter both temperature and wind speed.";
+  if(isNaN(tempVal) || isNaN(windVal)){
+    out.innerHTML = "Please enter both temperature and wind speed.";
     return;
   }
 
-  // Convert inputs to Celsius & km/h (NOAA standard)
-  let originalTemp = T;
-  let originalWind = V;
+  /* ------------------ CONVERSIONS ------------------ */
+  let T_C, T_F, T_K;
+  if(tUnit==="C"){ T_C=tempVal; T_F=T_C*9/5+32; T_K=T_C+273.15; }
+  if(tUnit==="F"){ T_F=tempVal; T_C=(T_F-32)*5/9; T_K=T_C+273.15; }
+  if(tUnit==="K"){ T_K=tempVal; T_C=T_K-273.15; T_F=T_C*9/5+32; }
 
-  if (tUnit === "F") {
-    T = (T - 32) * 5 / 9;
-  }
-  if (vUnit === "mph") {
-    V = V * 1.60934;
-  }
+  let V_kmh, V_mph;
+  if(vUnit==="kmh"){ V_kmh=windVal; V_mph=V_kmh/1.60934; }
+  if(vUnit==="mph"){ V_mph=windVal; V_kmh=V_mph*1.60934; }
+  if(vUnit==="ms"){ V_kmh=windVal*3.6; V_mph=V_kmh/1.60934; }
+  if(vUnit==="knots"){ V_kmh=windVal*1.852; V_mph=V_kmh/1.60934; }
 
-  // Validity check
-  if (T > 10 || V < 4.8) {
-    output.innerHTML = `
+  /* ------------------ VALIDITY ------------------ */
+  if(T_F > 50 || V_mph < 3){
+    out.innerHTML = `
       <div class="warning">
-        Wind chill is only defined for temperatures ≤ 10°C and wind speeds ≥ 4.8 km/h.
-      </div>
-    `;
+        Wind chill is defined only for temperatures ≤ 50°F (10°C)
+        and wind speeds ≥ 3 mph (4.8 km/h).
+      </div>`;
     return;
   }
 
-  // NOAA / NWS formula
-  const wc =
+  /* ------------------ NOAA FORMULA (METRIC BASE) ------------------ */
+  const wcC =
     13.12 +
-    0.6215 * T -
-    11.37 * Math.pow(V, 0.16) +
-    0.3965 * T * Math.pow(V, 0.16);
+    0.6215 * T_C -
+    11.37 * Math.pow(V_kmh, 0.16) +
+    0.3965 * T_C * Math.pow(V_kmh, 0.16);
 
+  let wcDisplay, wcUnit;
+  if(tUnit==="C"){ wcDisplay=wcC; wcUnit="°C"; }
+  if(tUnit==="F"){ wcDisplay=wcC*9/5+32; wcUnit="°F"; }
+  if(tUnit==="K"){ wcDisplay=wcC+273.15; wcUnit="K"; }
+
+  /* ------------------ RISK SCALE ------------------ */
   const risk =
-    wc <= -28 ? "Extreme frostbite risk" :
-    wc <= -18 ? "High frostbite risk" :
-    wc <= -10 ? "Moderate cold stress" :
+    wcC <= -40 ? "Extreme frostbite risk (≤5 min)" :
+    wcC <= -28 ? "Very high frostbite risk (10 min)" :
+    wcC <= -18 ? "High frostbite risk (30 min)" :
+    wcC <= -10 ? "Moderate cold stress" :
     "Low cold stress";
 
-  output.innerHTML = `
-    <span class="badge">Feels Like: ${wc.toFixed(1)} °C</span>
-    <span class="badge">Risk Level: ${risk}</span>
+  out.innerHTML = `
+    <span class="badge">Feels Like: ${wcDisplay.toFixed(1)} ${wcUnit}</span>
+    <span class="badge">${risk}</span>
 
     <div class="table-box">
     <table>
       <tr><th>Parameter</th><th>Value</th></tr>
-      <tr>
-        <td>Entered Temperature</td>
-        <td>${originalTemp} ${tUnit}</td>
-      </tr>
-      <tr>
-        <td>Entered Wind Speed</td>
-        <td>${originalWind} ${vUnit}</td>
-      </tr>
-      <tr>
-        <td>Converted Temperature</td>
-        <td>${T.toFixed(1)} °C</td>
-      </tr>
-      <tr>
-        <td>Converted Wind Speed</td>
-        <td>${V.toFixed(1)} km/h</td>
-      </tr>
-      <tr>
-        <td>Wind Chill</td>
-        <td>${wc.toFixed(1)} °C</td>
-      </tr>
-      <tr>
-        <td>Health Impact</td>
-        <td>${risk}</td>
-      </tr>
+      <tr><td>Temperature</td><td>${T_C.toFixed(1)} °C / ${T_F.toFixed(1)} °F / ${T_K.toFixed(1)} K</td></tr>
+      <tr><td>Wind Speed</td><td>${V_kmh.toFixed(1)} km/h / ${V_mph.toFixed(1)} mph</td></tr>
+      <tr><td>Wind Chill</td><td>${wcDisplay.toFixed(1)} ${wcUnit}</td></tr>
+      <tr><td>Health Impact</td><td>${risk}</td></tr>
     </table>
-    </div>
-  `;
+    </div>`;
 }
 </script>
 
