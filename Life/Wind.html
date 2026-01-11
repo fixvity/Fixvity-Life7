@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wind Chill Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --primary:#2563eb;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --radius:14px;
+  --text:#1f2937;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+}
+.container{
+  max-width:960px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:0 12px 28px rgba(0,0,0,.08);
+  margin-bottom:22px;
+  padding:20px;
+}
+h1,h3{margin:0;color:var(--primary)}
+small{color:var(--muted)}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+}
+label{
+  font-size:14px;
+  display:block;
+  margin-bottom:6px;
+}
+
+input, select{
+  width:100%;
+  height:48px;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  font-size:15px;
+}
+
+button{
+  width:100%;
+  height:52px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
+  margin-top:14px;
+}
+
+.result{
+  margin-top:16px;
+  background:#f9fafb;
+  border-radius:12px;
+  padding:16px;
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+  margin:6px 6px 0 0;
+  background:#eef2ff;
+  color:#3730a3;
+}
+
+.table-box{
+  margin-top:14px;
+  overflow-x:auto;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+th, td{
+  padding:10px;
+  text-align:left;
+  border-bottom:1px solid #e5e7eb;
+}
+th{
+  background:#eef2ff;
+  color:#1e3a8a;
+}
+
+.warning{
+  color:#b91c1c;
+  font-weight:600;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="card">
+<h1>🌬️ Wind Chill Calculator</h1>
+<small>NOAA standard · Scientifically accurate · Mobile & Desktop optimized</small>
+</div>
+
+<!-- INPUT -->
+<div class="card">
+<h3>Weather Conditions</h3>
+
+<div class="grid">
+<div>
+<label>Air Temperature</label>
+<input type="number" id="temp" placeholder="e.g. -5">
+</div>
+
+<div>
+<label>Temperature Unit</label>
+<select id="tempUnit">
+<option value="C">°C (Celsius)</option>
+<option value="F">°F (Fahrenheit)</option>
+</select>
+</div>
+
+<div>
+<label>Wind Speed</label>
+<input type="number" id="wind" placeholder="e.g. 20">
+</div>
+
+<div>
+<label>Wind Speed Unit</label>
+<select id="windUnit">
+<option value="kmh">km/h</option>
+<option value="mph">mph</option>
+</select>
+</div>
+</div>
+
+<button onclick="calculateWindChill()">Calculate Wind Chill</button>
+
+<div id="output" class="result">Enter values to calculate wind chill.</div>
+</div>
+
+</div>
+
+<script>
+function calculateWindChill(){
+  const output = document.getElementById("output");
+
+  let T = parseFloat(document.getElementById("temp").value);
+  let V = parseFloat(document.getElementById("wind").value);
+  const tUnit = document.getElementById("tempUnit").value;
+  const vUnit = document.getElementById("windUnit").value;
+
+  if (isNaN(T) || isNaN(V)) {
+    output.innerHTML = "Please enter both temperature and wind speed.";
+    return;
+  }
+
+  // Convert inputs to Celsius & km/h (NOAA standard)
+  let originalTemp = T;
+  let originalWind = V;
+
+  if (tUnit === "F") {
+    T = (T - 32) * 5 / 9;
+  }
+  if (vUnit === "mph") {
+    V = V * 1.60934;
+  }
+
+  // Validity check
+  if (T > 10 || V < 4.8) {
+    output.innerHTML = `
+      <div class="warning">
+        Wind chill is only defined for temperatures ≤ 10°C and wind speeds ≥ 4.8 km/h.
+      </div>
+    `;
+    return;
+  }
+
+  // NOAA / NWS formula
+  const wc =
+    13.12 +
+    0.6215 * T -
+    11.37 * Math.pow(V, 0.16) +
+    0.3965 * T * Math.pow(V, 0.16);
+
+  const risk =
+    wc <= -28 ? "Extreme frostbite risk" :
+    wc <= -18 ? "High frostbite risk" :
+    wc <= -10 ? "Moderate cold stress" :
+    "Low cold stress";
+
+  output.innerHTML = `
+    <span class="badge">Feels Like: ${wc.toFixed(1)} °C</span>
+    <span class="badge">Risk Level: ${risk}</span>
+
+    <div class="table-box">
+    <table>
+      <tr><th>Parameter</th><th>Value</th></tr>
+      <tr>
+        <td>Entered Temperature</td>
+        <td>${originalTemp} ${tUnit}</td>
+      </tr>
+      <tr>
+        <td>Entered Wind Speed</td>
+        <td>${originalWind} ${vUnit}</td>
+      </tr>
+      <tr>
+        <td>Converted Temperature</td>
+        <td>${T.toFixed(1)} °C</td>
+      </tr>
+      <tr>
+        <td>Converted Wind Speed</td>
+        <td>${V.toFixed(1)} km/h</td>
+      </tr>
+      <tr>
+        <td>Wind Chill</td>
+        <td>${wc.toFixed(1)} °C</td>
+      </tr>
+      <tr>
+        <td>Health Impact</td>
+        <td>${risk}</td>
+      </tr>
+    </table>
+    </div>
+  `;
+}
+</script>
+
+</body>
+</html>
