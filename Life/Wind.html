@@ -39,7 +39,7 @@ small{color:var(--muted)}
 }
 label{font-size:14px;margin-bottom:6px;display:block}
 
-input, select{
+input,select{
   width:100%;
   height:48px;
   padding:10px 12px;
@@ -61,35 +61,53 @@ button{
 }
 
 .result{
-  margin-top:16px;
+  margin-top:18px;
   background:#f9fafb;
   border-radius:12px;
-  padding:16px;
+  padding:18px;
 }
 
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:14px;
+}
 .badge{
-  display:inline-block;
-  padding:6px 12px;
+  padding:6px 14px;
   border-radius:999px;
   font-size:13px;
-  margin:6px 6px 0 0;
   background:#eef2ff;
   color:#3730a3;
+  white-space:nowrap;
 }
 
-.table-box{margin-top:14px;overflow-x:auto}
+.table-box{overflow-x:auto}
 table{
   width:100%;
   border-collapse:collapse;
   font-size:14px;
 }
 th,td{
-  padding:10px;
+  padding:12px;
   border-bottom:1px solid #e5e7eb;
+  text-align:center;
 }
-th{background:#eef2ff;color:#1e3a8a}
+th{
+  background:#eef2ff;
+  color:#1e3a8a;
+  font-weight:600;
+}
 
-.warning{color:#b91c1c;font-weight:600}
+.warning{
+  color:#b91c1c;
+  font-weight:600;
+  text-align:center;
+}
+
+@media(max-width:600px){
+  th,td{font-size:13px;padding:10px}
+}
 </style>
 </head>
 
@@ -105,34 +123,34 @@ th{background:#eef2ff;color:#1e3a8a}
 <h3>Weather Conditions</h3>
 
 <div class="grid">
-<div>
-<label>Air Temperature</label>
-<input type="number" id="tempInput" placeholder="e.g. -5">
-</div>
+  <div>
+    <label>Air Temperature</label>
+    <input type="number" id="tempInput" placeholder="e.g. -5">
+  </div>
 
-<div>
-<label>Temperature Unit</label>
-<select id="tempUnit">
-<option value="C">Celsius (°C)</option>
-<option value="F">Fahrenheit (°F)</option>
-<option value="K">Kelvin (K)</option>
-</select>
-</div>
+  <div>
+    <label>Temperature Unit</label>
+    <select id="tempUnit">
+      <option value="C">Celsius (°C)</option>
+      <option value="F">Fahrenheit (°F)</option>
+      <option value="K">Kelvin (K)</option>
+    </select>
+  </div>
 
-<div>
-<label>Wind Speed</label>
-<input type="number" id="windInput" placeholder="e.g. 20">
-</div>
+  <div>
+    <label>Wind Speed</label>
+    <input type="number" id="windInput" placeholder="e.g. 20">
+  </div>
 
-<div>
-<label>Wind Speed Unit</label>
-<select id="windUnit">
-<option value="kmh">km/h</option>
-<option value="mph">mph</option>
-<option value="ms">m/s</option>
-<option value="knots">knots</option>
-</select>
-</div>
+  <div>
+    <label>Wind Speed Unit</label>
+    <select id="windUnit">
+      <option value="kmh">km/h</option>
+      <option value="mph">mph</option>
+      <option value="ms">m/s</option>
+      <option value="knots">knots</option>
+    </select>
+  </div>
 </div>
 
 <button onclick="calculateWindChill()">Calculate Wind Chill</button>
@@ -144,72 +162,62 @@ th{background:#eef2ff;color:#1e3a8a}
 
 <script>
 function calculateWindChill(){
-  const out = document.getElementById("output");
+  const out=document.getElementById("output");
 
-  const tempVal = parseFloat(document.getElementById("tempInput").value);
-  const windVal = parseFloat(document.getElementById("windInput").value);
-  const tUnit = document.getElementById("tempUnit").value;
-  const vUnit = document.getElementById("windUnit").value;
-
-  if(isNaN(tempVal) || isNaN(windVal)){
-    out.innerHTML = "Please enter both temperature and wind speed.";
+  const t=parseFloat(tempInput.value);
+  const v=parseFloat(windInput.value);
+  if(isNaN(t)||isNaN(v)){
+    out.innerHTML="Please enter both temperature and wind speed.";
     return;
   }
 
-  /* ------------------ CONVERSIONS ------------------ */
-  let T_C, T_F, T_K;
-  if(tUnit==="C"){ T_C=tempVal; T_F=T_C*9/5+32; T_K=T_C+273.15; }
-  if(tUnit==="F"){ T_F=tempVal; T_C=(T_F-32)*5/9; T_K=T_C+273.15; }
-  if(tUnit==="K"){ T_K=tempVal; T_C=T_K-273.15; T_F=T_C*9/5+32; }
+  let TC,TF,TK;
+  if(tempUnit.value==="C"){TC=t;TF=TC*9/5+32;TK=TC+273.15}
+  if(tempUnit.value==="F"){TF=t;TC=(TF-32)*5/9;TK=TC+273.15}
+  if(tempUnit.value==="K"){TK=t;TC=TK-273.15;TF=TC*9/5+32}
 
-  let V_kmh, V_mph;
-  if(vUnit==="kmh"){ V_kmh=windVal; V_mph=V_kmh/1.60934; }
-  if(vUnit==="mph"){ V_mph=windVal; V_kmh=V_mph*1.60934; }
-  if(vUnit==="ms"){ V_kmh=windVal*3.6; V_mph=V_kmh/1.60934; }
-  if(vUnit==="knots"){ V_kmh=windVal*1.852; V_mph=V_kmh/1.60934; }
+  let Vkmh,Vmph;
+  if(windUnit.value==="kmh"){Vkmh=v;Vmph=Vkmh/1.60934}
+  if(windUnit.value==="mph"){Vmph=v;Vkmh=Vmph*1.60934}
+  if(windUnit.value==="ms"){Vkmh=v*3.6;Vmph=Vkmh/1.60934}
+  if(windUnit.value==="knots"){Vkmh=v*1.852;Vmph=Vkmh/1.60934}
 
-  /* ------------------ VALIDITY ------------------ */
-  if(T_F > 50 || V_mph < 3){
-    out.innerHTML = `
-      <div class="warning">
-        Wind chill is defined only for temperatures ≤ 50°F (10°C)
-        and wind speeds ≥ 3 mph (4.8 km/h).
-      </div>`;
+  if(TF>50||Vmph<3){
+    out.innerHTML=`<div class="warning">
+      Wind chill is defined only for temperatures ≤ 50°F (10°C)
+      and wind speeds ≥ 3 mph (4.8 km/h).
+    </div>`;
     return;
   }
 
-  /* ------------------ NOAA FORMULA (METRIC BASE) ------------------ */
-  const wcC =
-    13.12 +
-    0.6215 * T_C -
-    11.37 * Math.pow(V_kmh, 0.16) +
-    0.3965 * T_C * Math.pow(V_kmh, 0.16);
+  const wcC=13.12+0.6215*TC-11.37*Math.pow(Vkmh,0.16)+0.3965*TC*Math.pow(Vkmh,0.16);
 
-  let wcDisplay, wcUnit;
-  if(tUnit==="C"){ wcDisplay=wcC; wcUnit="°C"; }
-  if(tUnit==="F"){ wcDisplay=wcC*9/5+32; wcUnit="°F"; }
-  if(tUnit==="K"){ wcDisplay=wcC+273.15; wcUnit="K"; }
+  let wcVal,wcUnit;
+  if(tempUnit.value==="C"){wcVal=wcC;wcUnit="°C"}
+  if(tempUnit.value==="F"){wcVal=wcC*9/5+32;wcUnit="°F"}
+  if(tempUnit.value==="K"){wcVal=wcC+273.15;wcUnit="K"}
 
-  /* ------------------ RISK SCALE ------------------ */
-  const risk =
-    wcC <= -40 ? "Extreme frostbite risk (≤5 min)" :
-    wcC <= -28 ? "Very high frostbite risk (10 min)" :
-    wcC <= -18 ? "High frostbite risk (30 min)" :
-    wcC <= -10 ? "Moderate cold stress" :
+  const risk=
+    wcC<=-40?"Extreme frostbite risk (≤5 min)":
+    wcC<=-28?"Very high frostbite risk (10 min)":
+    wcC<=-18?"High frostbite risk (30 min)":
+    wcC<=-10?"Moderate cold stress":
     "Low cold stress";
 
-  out.innerHTML = `
-    <span class="badge">Feels Like: ${wcDisplay.toFixed(1)} ${wcUnit}</span>
-    <span class="badge">${risk}</span>
+  out.innerHTML=`
+    <div class="badges">
+      <div class="badge">Feels Like: ${wcVal.toFixed(1)} ${wcUnit}</div>
+      <div class="badge">${risk}</div>
+    </div>
 
     <div class="table-box">
-    <table>
-      <tr><th>Parameter</th><th>Value</th></tr>
-      <tr><td>Temperature</td><td>${T_C.toFixed(1)} °C / ${T_F.toFixed(1)} °F / ${T_K.toFixed(1)} K</td></tr>
-      <tr><td>Wind Speed</td><td>${V_kmh.toFixed(1)} km/h / ${V_mph.toFixed(1)} mph</td></tr>
-      <tr><td>Wind Chill</td><td>${wcDisplay.toFixed(1)} ${wcUnit}</td></tr>
-      <tr><td>Health Impact</td><td>${risk}</td></tr>
-    </table>
+      <table>
+        <tr><th>Parameter</th><th>Value</th></tr>
+        <tr><td>Temperature</td><td>${TC.toFixed(1)} °C / ${TF.toFixed(1)} °F / ${TK.toFixed(1)} K</td></tr>
+        <tr><td>Wind Speed</td><td>${Vkmh.toFixed(1)} km/h / ${Vmph.toFixed(1)} mph</td></tr>
+        <tr><td>Wind Chill</td><td>${wcVal.toFixed(1)} ${wcUnit}</td></tr>
+        <tr><td>Health Impact</td><td>${risk}</td></tr>
+      </table>
     </div>`;
 }
 </script>
